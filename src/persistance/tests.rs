@@ -43,7 +43,7 @@ mod answers_tests {
 
         let result = answer_doa
             .create_answer(Answer {
-                question_uuid: "a22abcd2-22ab-2222-a22b-2abc2a2b22cc".to_owned(),
+                question_uuid: "a22abcd2-22ab-2222-a22b-2abc2b2b22cc".to_owned(),
                 content: "test content".to_owned(),
             })
             .await;

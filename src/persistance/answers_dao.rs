@@ -38,12 +38,19 @@ impl AnswersDao for AnswersDaoImpl {
         )
         .fetch_one(&self.db)
         .await
-        .map_err(|err| {
-            if err.to_string().contains(postgres_error_codes::FOREIGN_KEY_VIOLATION) {
-                DBError::InvalidUUID(answer.question_uuid.clone())
-            } else {
-                DBError::Other(Box::new(err))
+        .map_err(|e: sqlx::Error| match e {
+            sqlx::Error::Database(e) => {
+                if let Some(code) = e.code() {
+                    if code.eq(postgres_error_codes::FOREIGN_KEY_VIOLATION) {
+                        return DBError::InvalidUUID(format!(
+                            "Invalid question UUID: {}",
+                            answer.question_uuid
+                        ));
+                    }
+                }
+                DBError::Other(Box::new(e))
             }
+            e => DBError::Other(Box::new(e)),
         })?;
 
         Ok(AnswerDetail {
