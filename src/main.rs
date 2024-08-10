@@ -1,25 +1,28 @@
-use std::net::SocketAddr;
-use axum::{
-    http::StatusCode,
-    response::IntoResponse,
-};
+use crate::app::start_server;
+use crate::db::establish_connection;
+use dotenvy::dotenv;
+use log::error;
+use std::process;
 
+mod app;
+mod db;
 mod handlers;
+mod persistance;
 mod models;
 mod routes;
 
 #[tokio::main]
-async fn main() {
-    let app = routes::app_routes().fallback(fallback_handler);
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    pretty_env_logger::init();
+    dotenv().ok();
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
+        error!("DATABASE_URL no está definido en el archivo .env");
+        process::exit(1);
+    });
 
-    println!("Server running on http://{}", listener.local_addr().unwrap());
+    let pool = establish_connection(&database_url).await?;
+    start_server(pool).await?;
 
-    axum::serve(listener, app).await.unwrap();
-}
-
-async fn fallback_handler() -> impl IntoResponse {
-    (StatusCode::NOT_FOUND, "endpoint not found")
+    Ok(())
 }
