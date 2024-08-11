@@ -1,8 +1,6 @@
 use crate::{models::*, app::AppState};
 use axum::{
-    extract::{State, Json},
-    response::IntoResponse,
-    http::StatusCode,
+    extract::{Json, Path, State}, http::StatusCode, response::IntoResponse
 };
 
 mod handlers_inner;
@@ -33,7 +31,7 @@ pub async fn read_questions(
 
 pub async fn delete_question(
     State(state): State<AppState>, 
-    Json(question_id): Json<QuestionId>
+    Path(question_id): Path<QuestionId>
 ) -> impl IntoResponse {
     let result = handlers_inner::delete_question(question_id, &*state.questions_dao).await;
 
@@ -42,7 +40,6 @@ pub async fn delete_question(
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
 }
-
 
 // ---- CRUD for Answers ----
 
@@ -60,20 +57,19 @@ pub async fn create_answer(
 
 pub async fn read_answers(
     State(state): State<AppState>,
-    Json(question_id): Json<QuestionId>,
+    Path(question_id): Path<QuestionId> 
 ) -> impl IntoResponse {
-
     let result = handlers_inner::read_answers(question_id, &*state.answers_dao).await;
 
     match result {
-        Ok(anwers) => (StatusCode::OK, Json(anwers)).into_response(),
+        Ok(answers) => (StatusCode::OK, Json(answers)).into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
 }
 
 pub async fn delete_answer(
     State(state): State<AppState>,
-    Json(answer_id): Json<AnswerId>) 
+    Path(answer_id): Path<AnswerId>)
     -> impl IntoResponse {
         let result = handlers_inner::delete_answer(answer_id, &*state.answers_dao).await;
 
