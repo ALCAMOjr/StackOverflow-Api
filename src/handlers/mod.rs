@@ -1,12 +1,12 @@
 use crate::models::*;
 use axum::{
+    extract::State,
     response::{IntoResponse, Json},
     http::StatusCode,
 };
 
 mod handlers_inner;
-use serde_json::json;
-// ---- CRUD for Questions ----
+
 
 pub async fn create_question(Json(question): Json<Question>) -> impl IntoResponse {
     // Implementar la lógica para crear una pregunta.
@@ -15,11 +15,7 @@ pub async fn create_question(Json(question): Json<Question>) -> impl IntoRespons
 }
 
 pub async fn read_questions() -> impl IntoResponse {
-    // Crear un objeto JSON con el mensaje "Hola mundo"
-    let response_body = json!({ "message": "Hola mundo" });
 
-    // Devolver el JSON con un código de estado 200 OK
-    (StatusCode::OK, Json(response_body))
 }
 
 pub async fn delete_question(Json(question_uuid): Json<QuestionId>) -> impl IntoResponse {

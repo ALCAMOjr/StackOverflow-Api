@@ -11,10 +11,6 @@ mod persistance;
 mod models;
 mod routes;
 
-use persistance::{
-    answers_dao::{AnswersDao, AnswersDaoImpl},
-    questions_dao::{QuestionsDao, QuestionsDaoImpl},
-};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
