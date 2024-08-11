@@ -31,8 +31,10 @@ pub async fn read_questions(
 
 pub async fn delete_question(
     State(state): State<AppState>, 
-    Path(question_id): Path<QuestionId>
+    Path(question_id): Path<String> 
 ) -> impl IntoResponse {
+    let question_id = QuestionId { question_uuid: question_id };
+  
     let result = handlers_inner::delete_question(question_id, &*state.questions_dao).await;
 
     match result {
@@ -57,8 +59,9 @@ pub async fn create_answer(
 
 pub async fn read_answers(
     State(state): State<AppState>,
-    Path(question_id): Path<QuestionId> 
+    Path(question_id): Path<String> 
 ) -> impl IntoResponse {
+    let question_id = QuestionId { question_uuid: question_id };
     let result = handlers_inner::read_answers(question_id, &*state.answers_dao).await;
 
     match result {
@@ -69,9 +72,11 @@ pub async fn read_answers(
 
 pub async fn delete_answer(
     State(state): State<AppState>,
-    Path(answer_id): Path<AnswerId>)
+    Path(answer_id): Path<String> 
+)
     -> impl IntoResponse {
-        let result = handlers_inner::delete_answer(answer_id, &*state.answers_dao).await;
+        let answer_id = AnswerId {  answer_uuid: answer_id };
+        let result: Result<(), handlers_inner::HandlerError> = handlers_inner::delete_answer(answer_id, &*state.answers_dao).await;
 
         match result {
             Ok(_) => StatusCode::NO_CONTENT.into_response(),
