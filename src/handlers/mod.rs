@@ -1,44 +1,84 @@
-use crate::models::*;
+use crate::{models::*, app::AppState};
 use axum::{
-    extract::State,
-    response::{IntoResponse, Json},
+    extract::{State, Json},
+    response::IntoResponse,
     http::StatusCode,
 };
 
 mod handlers_inner;
 
+pub async fn create_question(
+    State(state): State<AppState>, 
+    Json(question): Json<Question>
+) -> impl IntoResponse {
+    let result = handlers_inner::create_question(question, &*state.questions_dao).await;
 
-pub async fn create_question(Json(question): Json<Question>) -> impl IntoResponse {
-    // Implementar la lógica para crear una pregunta.
-    // Puedes devolver un estado HTTP 201 (Created) junto con la pregunta creada.
-    Json(question) // Esto es solo un ejemplo de respuesta
+    match result {
+        Ok(created_question) => (StatusCode::CREATED, Json(created_question)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
 
-pub async fn read_questions() -> impl IntoResponse {
 
+pub async fn read_questions(
+    State(state): State<AppState>
+) -> impl IntoResponse {
+    let result = handlers_inner::read_questions(&*state.questions_dao).await;
+
+    match result {
+        Ok(questions) => (StatusCode::OK, Json(questions)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
 
-pub async fn delete_question(Json(question_uuid): Json<QuestionId>) -> impl IntoResponse {
-    // Implementar la lógica para eliminar una pregunta por su UUID.
-    // Puedes devolver un estado HTTP 204 (No Content) para indicar que la operación fue exitosa.
-    ()
+pub async fn delete_question(
+    State(state): State<AppState>, 
+    Json(question_id): Json<QuestionId>
+) -> impl IntoResponse {
+    let result = handlers_inner::delete_question(question_id, &*state.questions_dao).await;
+
+    match result {
+        Ok(_) => StatusCode::NO_CONTENT.into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
+
 
 // ---- CRUD for Answers ----
 
-pub async fn create_answer(Json(answer): Json<Answer>) -> impl IntoResponse {
-    // Implementar la lógica para crear una respuesta.
-    // Devolver el detalle de la respuesta creada como JSON.
-    Json(answer) // Esto es solo un ejemplo de respuesta
+pub async fn create_answer(
+    State(state): State<AppState>, 
+    Json(answer): Json<Answer>)
+     -> impl IntoResponse {
+    let result = handlers_inner::create_answer(answer, &*state.answers_dao).await;
+
+    match result {
+        Ok(created_answer) => (StatusCode::CREATED, Json(created_answer)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
 
-pub async fn read_answers(Json(question_id): Json<QuestionId>) -> impl IntoResponse {
-    // Implementar la lógica para leer todas las respuestas asociadas a una pregunta.
-    // Devolver un vector con los detalles de las respuestas como JSON.
+pub async fn read_answers(
+    State(state): State<AppState>,
+    Json(question_id): Json<QuestionId>,
+) -> impl IntoResponse {
+
+    let result = handlers_inner::read_answers(question_id, &*state.answers_dao).await;
+
+    match result {
+        Ok(anwers) => (StatusCode::OK, Json(anwers)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
 
-pub async fn delete_answer(Json(answer_id): Json<AnswerId>) -> impl IntoResponse {
-    // Implementar la lógica para eliminar una respuesta por su ID.
-    // Puedes devolver un estado HTTP 204 (No Content) para indicar que la operación fue exitosa.
-    ()
+pub async fn delete_answer(
+    State(state): State<AppState>,
+    Json(answer_id): Json<AnswerId>) 
+    -> impl IntoResponse {
+        let result = handlers_inner::delete_answer(answer_id, &*state.answers_dao).await;
+
+        match result {
+            Ok(_) => StatusCode::NO_CONTENT.into_response(),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
 }

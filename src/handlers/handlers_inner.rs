@@ -4,6 +4,8 @@ use crate::{
     models::{Answer, AnswerDetail, AnswerId, DBError, Question, QuestionDetail, QuestionId},
     persistance::{answers_dao::AnswersDao, questions_dao::QuestionsDao},
 };
+use std::fmt;
+
 
 #[derive(Debug, PartialEq)]
 pub enum HandlerError {
@@ -16,6 +18,16 @@ impl HandlerError {
         HandlerError::InternalError("Something went wrong! Please try again.".to_owned())
     }
 }
+impl fmt::Display for HandlerError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HandlerError::BadRequest(msg) => write!(f, "Bad Request: {}", msg),
+            HandlerError::InternalError(msg) => write!(f, "Internal Error: {}", msg),
+        }
+    }
+}
+
+
 
 pub async fn create_question(
     question: Question,
@@ -70,7 +82,6 @@ pub async fn create_answer(
     match result {
         Ok(answer_detail) => Ok(answer_detail),
         Err(err) => {
-            // Registrar el error
             error!("Error al crear la respuesta: {:?}", err);
             match err {
                 DBError::InvalidUUID(_) => Err(HandlerError::BadRequest(err.to_string())),
